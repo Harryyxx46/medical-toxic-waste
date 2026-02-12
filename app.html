@@ -1,0 +1,322 @@
+    "Do not incinerate or crush",
+          "Collect in designated battery recycling bin",
+          "Take to electronics recycling facility"
+        ],
+        warnings: ["Fire risk if damaged", "Contains heavy metals", "May leak corrosive materials"],
+        container: "Battery recycling container"
+      },
+      {
+        id: 10,
+        name: "Pathological Waste",
+        category: "infectious",
+        icon: "🫀",
+        dangerLevel: "extreme",
+        color: "#dc2626",
+        description: "Human tissues, organs, and body parts from surgeries or autopsies.",
+        disposal: [
+          "Double-bag in red biohazard bags",
+          "Refrigerate if not immediately disposed",
+          "Requires incineration by licensed facility",
+          "Document all disposed materials",
+          "Follow ethical and legal requirements"
+        ],
+        warnings: ["Infection risk", "Requires respectful handling", "Strict regulatory compliance"],
+        container: "Red biohazard container, refrigerated"
+      },
+      {
+        id: 11,
+        name: "Aerosol Cans (Medical)",
+        category: "chemical",
+        icon: "🧴",
+        dangerLevel: "medium",
+        color: "#f59e0b",
+        description: "Pressurized containers from medical sprays and inhalers.",
+        disposal: [
+          "Use completely before disposal if safe",
+          "Do not puncture or incinerate",
+          "Remove caps and separate for recycling",
+          "Check if contents are hazardous",
+          "Take to hazardous waste collection if contents remain"
+        ],
+        warnings: ["Explosion risk if heated", "May contain hazardous propellants", "Pressurized container"],
+        container: "Hazardous waste container if not empty"
+      },
+      {
+        id: 12,
+        name: "Lead Aprons & Shields",
+        category: "radioactive",
+        icon: "🛡️",
+        dangerLevel: "medium",
+        color: "#64748b",
+        description: "Protective equipment containing lead used in radiology departments.",
+        disposal: [
+          "Do not dispose in regular trash",
+          "Contact lead recycling facilities",
+          "Store in dry location until pickup",
+          "Document disposal with certificates",
+          "Some manufacturers offer take-back programs"
+        ],
+        warnings: ["Lead is toxic if degraded", "Heavy - use proper lifting", "Recyclable material"],
+        container: "Return to manufacturer or lead recycler"
+      }
+    ];
+
+    // Default configuration
+    const defaultConfig = {
+      app_title: "Medical & Toxic Waste Guide",
+      subtitle_text: "Safely identify, separate, and dispose of hazardous materials with proper guidance",
+      search_placeholder: "Search for waste type (e.g., syringes, batteries, chemicals...)",
+      primary_color: "#dc2626",
+      secondary_color: "#1e293b",
+      text_color: "#ffffff",
+      accent_color: "#f59e0b",
+      surface_color: "#334155",
+      font_family: "DM Sans"
+    };
+
+    let currentCategory = "all";
+    let searchTerm = "";
+
+    // Render waste cards
+    function renderCards(wastes) {
+      const grid = document.getElementById("results-grid");
+      const emptyState = document.getElementById("empty-state");
+
+      if (wastes.length === 0) {
+        grid.innerHTML = "";
+        emptyState.classList.remove("hidden");
+        return;
+      }
+
+      emptyState.classList.add("hidden");
+      grid.innerHTML = wastes.map(waste => `
+        <div class="waste-card result-enter bg-slate-800/60 backdrop-blur border border-slate-700 rounded-2xl p-6 cursor-pointer hover:border-slate-500" onclick="showDetail(${waste.id})">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-4xl">${waste.icon}</span>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${getDangerClass(waste.dangerLevel)}">
+              ${waste.dangerLevel}
+            </span>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">${waste.name}</h3>
+          <p class="text-slate-400 text-sm mb-4 line-clamp-2">${waste.description}</p>
+          <div class="flex items-center gap-2 text-sm">
+            <span class="px-3 py-1 rounded-full bg-slate-700 text-slate-300 capitalize">${waste.category}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function getDangerClass(level) {
+      switch(level) {
+        case "extreme": return "bg-red-500/20 text-red-400 danger-pulse";
+        case "high": return "bg-orange-500/20 text-orange-400";
+        case "medium": return "bg-yellow-500/20 text-yellow-400";
+        default: return "bg-green-500/20 text-green-400";
+      }
+    }
+
+    // Show detail panel
+    function showDetail(id) {
+      const waste = wasteDatabase.find(w => w.id === id);
+      if (!waste) return;
+
+      const panel = document.getElementById("detail-panel");
+      const content = document.getElementById("detail-content");
+
+      content.innerHTML = `
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-4">
+            <span class="text-5xl">${waste.icon}</span>
+            <div>
+              <h2 class="text-2xl font-bold text-white">${waste.name}</h2>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase ${getDangerClass(waste.dangerLevel)}">${waste.dangerLevel} risk</span>
+            </div>
+          </div>
+          <button onclick="closeDetail()" class="p-2 rounded-full bg-slate-800 hover:bg-slate-700 transition-colors">
+            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <p class="text-slate-300 mb-6">${waste.description}</p>
+
+        <div class="bg-slate-800 rounded-xl p-5 mb-6">
+          <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Proper Disposal Steps
+          </h3>
+          <ol class="space-y-2">
+            ${waste.disposal.map((step, i) => `
+              <li class="flex items-start gap-3 text-slate-300">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 text-green-400 text-sm font-bold flex items-center justify-center">${i + 1}</span>
+                ${step}
+              </li>
+            `).join("")}
+          </ol>
+        </div>
+
+        <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-5 mb-6">
+          <h3 class="text-lg font-semibold text-red-400 mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            Warnings
+          </h3>
+          <ul class="space-y-2">
+            ${waste.warnings.map(warning => `
+              <li class="flex items-start gap-2 text-red-300">
+                <span class="text-red-500">•</span>
+                ${warning}
+              </li>
+            `).join("")}
+          </ul>
+        </div>
+
+        <div class="bg-slate-800 rounded-xl p-5">
+          <h3 class="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            Required Container
+          </h3>
+          <p class="text-slate-300">${waste.container}</p>
+        </div>
+      `;
+
+      panel.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeDetail() {
+      document.getElementById("detail-panel").classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+
+    // Filter and search
+    function filterWaste() {
+      let filtered = wasteDatabase;
+
+      if (currentCategory !== "all") {
+        filtered = filtered.filter(w => w.category === currentCategory);
+      }
+
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filtered = filtered.filter(w => 
+          w.name.toLowerCase().includes(term) ||
+          w.description.toLowerCase().includes(term) ||
+          w.category.toLowerCase().includes(term)
+        );
+      }
+
+      renderCards(filtered);
+    }
+
+    // Category button handlers
+    document.querySelectorAll(".category-btn").forEach(btn => {
+      btn.addEventListener("click", function() {
+        document.querySelectorAll(".category-btn").forEach(b => {
+          b.classList.remove("active", "bg-red-600", "text-white");
+          b.classList.add("bg-slate-800", "text-slate-300");
+        });
+        this.classList.add("active", "bg-red-600", "text-white");
+        this.classList.remove("bg-slate-800", "text-slate-300");
+        currentCategory = this.dataset.category;
+        filterWaste();
+      });
+    });
+
+    // Search input handler
+    document.getElementById("search-input").addEventListener("input", function(e) {
+      searchTerm = e.target.value;
+      filterWaste();
+    });
+
+    // Close detail on backdrop click
+    document.getElementById("detail-panel").addEventListener("click", function(e) {
+      if (e.target === this) {
+        closeDetail();
+      }
+    });
+
+    // Close detail on Escape key
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") {
+        closeDetail();
+      }
+    });
+
+    // Element SDK initialization
+    async function onConfigChange(config) {
+      const titleEl = document.getElementById("app-title");
+      const subtitleEl = document.getElementById("subtitle");
+      const searchEl = document.getElementById("search-input");
+
+      titleEl.textContent = config.app_title || defaultConfig.app_title;
+      subtitleEl.textContent = config.subtitle_text || defaultConfig.subtitle_text;
+      searchEl.placeholder = config.search_placeholder || defaultConfig.search_placeholder;
+
+      // Apply font
+      const fontFamily = config.font_family || defaultConfig.font_family;
+      document.body.style.fontFamily = `${fontFamily}, sans-serif`;
+
+      // Apply colors
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+
+      // Update header icon background
+      const headerIcon = document.querySelector("header > div");
+      if (headerIcon) {
+        headerIcon.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)`;
+      }
+
+      // Update active category button
+      document.querySelectorAll(".category-btn.active").forEach(btn => {
+        btn.style.backgroundColor = primaryColor;
+      });
+
+      // Update title color
+      titleEl.style.color = textColor;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              window.elementSdk.setConfig({ secondary_color: value });
+            }
+          },
+          {
+            get: () => config.surface_color || defaultConfig.surface_color,
+            set: (value) => {
+              config.surface_color = value;
+              window.elementSdk.setConfig({ surface_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => {
+              config
